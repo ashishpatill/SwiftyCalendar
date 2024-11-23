@@ -36,7 +36,7 @@ class TimelineCell: UITableViewCell {
     }()
     
     private var eventViews: [UIView] = []
-    private let calendar = Calendar.current
+    private let calendar = EventManager.shared.calendar
     
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
@@ -55,12 +55,11 @@ class TimelineCell: UITableViewCell {
 
     // MARK: - Configuration
     
-    func configure(with hour: Int, events: [Event]) {
+    func configure(with hour: Int, eventsForHour: [Event], for date: Date) {
         setupHourLabel(for: hour)
         clearEventViews()
         
-        guard let startOfHour = calendar.date(bySettingHour: hour, minute: 0, second: 0, of: Date()) else { return }
-        let eventsForHour = filterEvents(for: events, in: startOfHour)
+        guard let startOfHour = calendar.date(bySettingHour: hour, minute: 0, second: 0, of: date) else { return }
         
         guard !eventsForHour.isEmpty else { return }
         
