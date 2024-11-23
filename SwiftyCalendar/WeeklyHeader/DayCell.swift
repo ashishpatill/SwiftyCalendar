@@ -55,8 +55,8 @@ class DayCell: UICollectionViewCell {
         contentView.addSubview(eventIndicator)
         
         NSLayoutConstraint.activate([
-            dayLabel.heightAnchor.constraint(equalToConstant: 25),
-            dateLabel.heightAnchor.constraint(equalToConstant: 25),
+            dayLabel.heightAnchor.constraint(equalToConstant: 30),
+            dateLabel.heightAnchor.constraint(equalToConstant: 30),
             
             dayVerticalStackView.leftAnchor.constraint(equalTo: contentView.leftAnchor),
             dayVerticalStackView.rightAnchor.constraint(equalTo: contentView.rightAnchor),
