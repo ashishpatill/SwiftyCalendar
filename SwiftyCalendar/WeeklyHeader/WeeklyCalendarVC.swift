@@ -15,13 +15,9 @@ class WeeklyCalendarVC: UIViewController {
     
     private var selectedDate = Date()
     private var didScrollToToday = false
-
-    private let calendar: Calendar = {
-        var calendar = Calendar.current
-        calendar.timeZone = TimeZone.current
-        calendar.firstWeekday = 1 //Sunday = 1
-        return calendar
-    }()
+    var events: [Event] = []
+    
+    private let calendar: Calendar = EventManager.shared.calendar
 
     // Define a large number for infinite scrolling
     private let totalWeeks = 10000  // Total number of weeks
@@ -65,7 +61,7 @@ class WeeklyCalendarVC: UIViewController {
         selectedDate = Date()
         setupLayout()
         updateSelectedDateLabel()
-        preloadEvents()  // Preload events for the specified date range
+        EventLoader.preloadEvents()  // Preload events for the specified date range
         weekCollectionView.reloadData()
         
         // Scroll to the base index aligned with the current week starting on Sunday
@@ -111,48 +107,6 @@ class WeeklyCalendarVC: UIViewController {
             selectedDateLabel.topAnchor.constraint(equalTo: weekCollectionView.bottomAnchor, constant: 10),
             selectedDateLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor),
         ])
-    }
-    
-    private func preloadEvents() {
-        guard let startDate = calendar.date(byAdding: .month, value: -1, to: Date()),
-              let endDate = calendar.date(byAdding: .month, value: 6, to: Date()) else { return }
-        
-        var date = startDate
-        while date <= endDate {
-            addMockEvents(for: date)
-            if let nextDate = calendar.date(byAdding: .day, value: 1, to: date) {
-                date = nextDate
-            } else {
-                break
-            }
-        }
-    }
-    
-    private func addMockEvents(for date: Date) {
-        let calendar = Calendar.current
-        EventManager.shared.clearEvents(on: date)
-        
-        // Define event details
-        let eventDetails = [
-            (hour: 9, minute: 0, duration: 60, name: "Morning Meeting", livestream: true),
-            (hour: 11, minute: 30, duration: 30, name: "Team Sync", livestream: false),
-            (hour: 14, minute: 0, duration: 90, name: "Project Update", livestream: true),
-            (hour: 16, minute: 15, duration: 45, name: "Client Call", livestream: false)
-        ]
-        
-        for (index, detail) in eventDetails.enumerated() {
-            guard let eventStart = calendar.date(bySettingHour: detail.hour, minute: detail.minute, second: 0, of: date),
-                  let eventEnd = calendar.date(byAdding: .minute, value: detail.duration, to: eventStart) else { continue }
-            
-            let event = Event(
-                name: detail.name,
-                startTime: eventStart,
-                endTime: eventEnd,
-                color: appColor.greenColor,
-                hasLivestream: detail.livestream
-            )
-            EventManager.shared.addEvent(event)
-        }
     }
 
     private func formattedDate(_ date: Date) -> String {
@@ -264,7 +218,7 @@ extension WeeklyCalendarVC: UICollectionViewDelegate, UICollectionViewDataSource
               let date = calendar.date(byAdding: .day, value: dayOfWeek, to: weekStartDate) else { return cell }
 
         // Fetch events for the date
-        let events = EventManager.shared.fetchEvents(on: date)
+        events = EventManager.shared.fetchEvents(on: date)
         cell.configure(with: date, selectedDate: selectedDate, events: events)
         return cell
     }
@@ -341,7 +295,7 @@ extension WeeklyCalendarVC: UIPageViewControllerDataSource, UIPageViewController
         if completed, let currentVC = pageController.viewControllers?.first as? DayEventsVC {
             selectedDate = currentVC.date
             updateSelectedDateLabel()
-            preloadEvents()
+            EventLoader.preloadEvents()
             weekCollectionView.reloadData()
             scrollToSelectedDate()
         }
